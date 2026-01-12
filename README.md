@@ -28,3 +28,5 @@ npm run dev
 The site automatically deploys to GitHub Pages when changes are pushed to the `main` branch via GitHub Actions.
 
 Live at: https://abhakat.github.io
+
+* updated to use github actions
