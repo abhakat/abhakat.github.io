@@ -1,4 +1,4 @@
-import { AtSign, BriefcaseBusiness, Code, GitFork, Mail } from 'lucide-react'
+import { AtSign, BriefcaseBusiness, Code, GitFork, Mail, Package } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { SocialKind, SocialLink } from '../types'
 
@@ -8,6 +8,7 @@ const iconsByKind: Record<SocialKind, LucideIcon> = {
   linkedin: BriefcaseBusiness,
   leetcode: Code,
   x: AtSign,
+  npm: Package,
 }
 
 type SocialDockProps = {
