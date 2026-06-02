@@ -26,7 +26,7 @@ export const travelCountries = [
     code: 'IND',
     name: 'India',
     coordinates: [78.9629, 20.5937],
-    status: 'lived',
+    status: 'visited',
     cities: [
       { id: 'kolkata', name: 'Kolkata', coordinates: [88.3639, 22.5726] },
       { id: 'bangalore', name: 'Bangalore', coordinates: [77.5946, 12.9716] },
@@ -147,6 +147,7 @@ export const travelTrips = [
       { countryCode: 'IND', cityId: 'bangalore' },
       { countryCode: 'IND', cityId: 'goa' },
       { countryCode: 'IND', cityId: 'kolkata' },
+      { countryCode: 'USA', cityId: 'sf' },
     ],
   },
   {
@@ -187,6 +188,7 @@ export const travelTrips = [
       { countryCode: 'USA', cityId: 'chicago' },
       { countryCode: 'GBR', cityId: 'london' },
       { countryCode: 'ITA', cityId: 'rome' },
+      { countryCode: 'USA', cityId: 'chicago' },
     ],
   },
   {
