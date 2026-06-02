@@ -1,5 +1,13 @@
+import { useState } from 'react'
 import { ArrowUpRight, Cog } from 'lucide-react'
-import { hobbies, projects, readPapers, travelGuides, wantToReadPapers } from '../content/profile'
+import {
+  TravelAtlas,
+  type TravelCitySelection,
+  type TravelCountry,
+  type TravelRenderer,
+} from '@anaybucket/travel-atlas'
+import { hobbies, projects, readPapers, wantToReadPapers } from '../content/profile'
+import { travelCountries, travelTrips } from '../content/travel'
 import type { JournalEntry, PaperEntry, Project } from '../types'
 import type { CollectionPageId } from '../App'
 
@@ -142,10 +150,134 @@ const pageCopy = {
   },
   travel: {
     eyebrow: 'travel',
-    title: 'travel guide',
-    description: 'City notes, food finds, trip ideas, and personal recommendations from places I visit.',
+    title: 'travel atlas',
+    description: 'A map of places I have been, routes I have taken, and countries I want to visit next.',
   },
 } as const
+
+const hiddenUnitedStatesLivedCityIds = new Set(['denver', 'nyc', 'la'])
+
+function TravelCountryPanel({
+  country,
+  selectedCity,
+  onCitySelect,
+}: {
+  country: TravelCountry
+  selectedCity: TravelCitySelection | undefined
+  onCitySelect: (selection: TravelCitySelection) => void
+}) {
+  const visibleCities =
+    country.code === 'USA'
+      ? country.cities?.filter((city) => !hiddenUnitedStatesLivedCityIds.has(city.id))
+      : country.cities
+
+  return (
+    <>
+      <h3>{country.name}</h3>
+      <p>{country.summary ?? country.status}</p>
+      {visibleCities && visibleCities.length > 0 ? (
+        <div className="ta-chipList" aria-label={`${country.name} cities`}>
+          {visibleCities.map((city) => (
+            <button
+              key={city.id}
+              type="button"
+              className="ta-chip ta-chipButton"
+              aria-pressed={selectedCity?.countryCode === country.code && selectedCity.cityId === city.id}
+              onClick={() => onCitySelect({ countryCode: country.code, cityId: city.id })}
+            >
+              {city.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+const visitedTravelCountries = travelCountries.filter((country) => country.status === 'visited' || country.status === 'lived')
+const wantToVisitTravelCountries = travelCountries.filter((country) => country.status === 'want-to-visit')
+
+function TravelAtlasPanel() {
+  const [renderer, setRenderer] = useState<TravelRenderer>('globe')
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>()
+  const [selectedCity, setSelectedCity] = useState<TravelCitySelection>()
+
+  function handleCountrySelect(countryCode: string) {
+    setSelectedCountryCode(countryCode)
+    setSelectedCity(undefined)
+  }
+
+  function handleCitySelect(selection: TravelCitySelection) {
+    setSelectedCountryCode(selection.countryCode)
+    setSelectedCity(selection)
+  }
+
+  return (
+    <div className="travel-atlas-panel">
+      <div className="travel-atlas-toolbar" aria-label="Travel atlas view">
+        <span>view</span>
+        <div className="travel-atlas-view-switch">
+          <button type="button" aria-pressed={renderer === 'globe'} onClick={() => setRenderer('globe')}>
+            globe
+          </button>
+          <button type="button" aria-pressed={renderer === 'map'} onClick={() => setRenderer('map')}>
+            2D map
+          </button>
+        </div>
+      </div>
+      <TravelAtlas
+        countries={travelCountries}
+        trips={travelTrips}
+        defaultMode="trips"
+        defaultTripDisplayMode="all"
+        renderer={renderer}
+        enableZoom
+        showCountryLabels
+        selectedCountryCode={selectedCountryCode}
+        selectedCity={selectedCity}
+        onCountrySelect={handleCountrySelect}
+        onCitySelect={handleCitySelect}
+        renderCountryPanel={(country) => (
+          <TravelCountryPanel country={country} selectedCity={selectedCity} onCitySelect={handleCitySelect} />
+        )}
+      />
+      <div className="travel-atlas-ledger" aria-label="Travel atlas ledger">
+        <div>
+          <p className="ta-eyebrow">visited</p>
+          <p>{visitedTravelCountries.length} countries</p>
+          <div className="travel-atlas-ledger-list">
+            {visitedTravelCountries.map((country) => (
+              <button
+                key={country.code}
+                type="button"
+                aria-pressed={selectedCountryCode === country.code}
+                onClick={() => handleCountrySelect(country.code)}
+              >
+                {country.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="ta-eyebrow">want to visit</p>
+          <p>{wantToVisitTravelCountries.length} countries</p>
+          <div className="travel-atlas-ledger-list">
+            {wantToVisitTravelCountries.map((country) => (
+              <button
+                key={country.code}
+                type="button"
+                aria-pressed={selectedCountryCode === country.code}
+                onClick={() => handleCountrySelect(country.code)}
+              >
+                {country.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function LibraryPage({ page }: { page: CollectionPageId }) {
   if (page === 'projects') {
@@ -200,11 +332,7 @@ export function LibraryPage({ page }: { page: CollectionPageId }) {
   return (
     <div className="library-page">
       <Section {...pageCopy.travel} id="travel">
-        <div className="journal-grid">
-          {travelGuides.map((entry) => (
-            <JournalCard key={entry.title} entry={entry} />
-          ))}
-        </div>
+        <TravelAtlasPanel />
       </Section>
     </div>
   )
@@ -255,11 +383,7 @@ export function LibrarySections() {
       </Section>
 
       <Section id="travel" eyebrow={pageCopy.travel.eyebrow} title={pageCopy.travel.title} description={pageCopy.travel.description}>
-        <div className="journal-grid">
-          {travelGuides.map((entry) => (
-            <JournalCard key={entry.title} entry={entry} />
-          ))}
-        </div>
+        <TravelAtlasPanel />
       </Section>
     </div>
   )
